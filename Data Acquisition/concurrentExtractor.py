@@ -33,16 +33,19 @@ if __name__ == '__main__':
     urls = aa.listOfShowsV2(baseURL, 2000, 1000)
 
     batches = makeBatches(urls, 250)
-    for urls in batches:
+    n = len(batches)
+    for i in range(n):
         with cf.ProcessPoolExecutor() as executor:
             bigData = []
-            tasks = [executor.submit(aa.APICaller, url) for url in urls]
+            tasks = [executor.submit(aa.APICaller, url) for url in batches[i]]
             for f in cf.as_completed(tasks):
                 bigData.append(f.result())
         insertIntoMongo("anime", "showDB", bigData)
         print(f'finished batch...at {datetime.now()}')
-    
-        sleep(120)
+        if i == n - 1:
+            sleep(0.001)
+        else:
+            sleep(120)
 
     end = perf_counter() - start
     print(f'Execution time: {round(end / 60, 2)} minutes')
