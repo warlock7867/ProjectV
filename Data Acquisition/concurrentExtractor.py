@@ -1,5 +1,4 @@
 import concurrent.futures as cf
-from email.mime import base
 from time import perf_counter, sleep
 import allAnime as aa
 from pymongo import MongoClient
@@ -30,13 +29,10 @@ def makeBatches(array:list, n = 50) -> list:
 if __name__ == '__main__':
     start = perf_counter()
 
-    '''
-        OBTAIN URLS FOR ALL THE ANIME FROM BASE URL
-    '''
     baseURL = r'https://myanimelist.net/topanime.php'
-    urls = aa.listOfShows(baseURL, 100)
+    urls = aa.listOfShowsV2(baseURL, 2000, 1000)
 
-    batches = makeBatches(urls, 400)
+    batches = makeBatches(urls, 250)
     for urls in batches:
         with cf.ProcessPoolExecutor() as executor:
             bigData = []
@@ -49,4 +45,4 @@ if __name__ == '__main__':
         sleep(120)
 
     end = perf_counter() - start
-    print(f'Execution time: {round(end, 2)} seconds')
+    print(f'Execution time: {round(end / 60, 2)} minutes')

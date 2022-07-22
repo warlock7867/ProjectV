@@ -2,6 +2,8 @@ from bs4 import BeautifulSoup
 import re
 import requests 
 import concurrent.futures as cf
+from time import sleep
+from os.path import basename
 
 def urlGetter(url):
 
@@ -26,6 +28,24 @@ def listOfShows(baseURL, noOfShows = 50):
     shows = []
     with cf.ProcessPoolExecutor() as executor:
             futures = [executor.submit(urlGetter, a) for a in allURLs]
+            for f in cf.as_completed(futures):
+                show = f.result()
+                shows += show  
+    return shows
+
+def listOfShowsV2(baseURL, start = 0, noOfShows = 50):
+    end = start + noOfShows
+    allURLS = []
+
+    for i in range(start, end, 50):
+        if i == 0:
+            allURLS.append(baseURL)
+        else:
+            allURLS.append(f'{baseURL}?limit={i}')
+
+    shows = []
+    with cf.ProcessPoolExecutor() as executor:
+            futures = [executor.submit(urlGetter, a) for a in allURLS]
             for f in cf.as_completed(futures):
                 show = f.result()
                 shows += show  
@@ -160,7 +180,7 @@ def animeExtractor(soup):
 
 def APICaller(url):
     url = url.strip()
-    print(f'requesting...{url}')
+    print(f'requesting...{basename(url)}')
     with open('errors.txt', 'a', encoding='utf-8') as error:
         data = dict()
         try:
@@ -170,5 +190,6 @@ def APICaller(url):
             data = animeExtractor(soup)
         except:
                 error.writelines(f'{url}')
-        print('request complete...')
+        print(f'request complete for {basename(url)}...')
+        sleep(5)
         return data
